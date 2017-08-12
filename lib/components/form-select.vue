@@ -10,6 +10,7 @@
             :aria-required="required ? 'true' : null"
             :aria-invalid="ariaInvalid"
             ref="input"
+            @change="$emit('change', localValue)"
     ><slot></slot></select>
 </template>
 
