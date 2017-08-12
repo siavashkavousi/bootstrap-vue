@@ -10,26 +10,40 @@
             :aria-required="required ? 'true' : null"
             :aria-invalid="ariaInvalid"
             ref="input"
-    >
-        <option v-for="option in formOptions"
-                :value="option.value"
-                v-html="option.text"
-                :disabled="option.disabled"
-                :key="option.value || option.text"
-        ></option>
-    </select>
+    ><slot></slot></select>
 </template>
 
 <script>
-    import { formMixin, formOptionsMixin, formCustomMixin } from '../mixins';
+    import { formMixin, formCustomMixin } from '../mixins';
     import { warn } from '../utils';
 
     export default {
-        mixins: [formMixin, formCustomMixin, formOptionsMixin],
+        mixins: [formMixin, formCustomMixin],
         data() {
             return {
                 localValue: this.multiple ? (this.value || []) : this.value
             };
+        },
+        props: {
+            value: {},
+            invalid: {
+                type: [Boolean, String],
+                default: false
+            },
+            size: {
+                type: String,
+                default: null
+            },
+            multiple: {
+                type: Boolean,
+                default: false
+            },
+            selectSize: {
+                // Browsers default size to 0, which typically shows 4 rows in most browsers
+                // Size of 1 can bork out firefox!!!
+                type: Number,
+                default: 0
+            }
         },
         computed: {
             inputClass() {
@@ -46,40 +60,17 @@
                 return null;
             }
         },
-        props: {
-            value: {},
-            invalid: {
-                type: [Boolean, String],
-                default: false
+        watch: {
+            value(newVal, oldVal) {
+                if (newVal !== oldVal) {
+                    this.lcoalValue = this.multiple ? (newVal || []) : newVal;
+                }
             },
-            size: {
-                type: String,
-                default: null
-            },
-            options: {
-                type: [Array, Object],
-                required: true
-            },
-            multiple: {
-                type: Boolean,
-                default: false
-            },
-            selectSize: {
-                // Browsers default size to 0, which typically shows 4 rows in most browsers
-                // Size of 1 can bork out firefox
-                type: Number,
-                default: 0
-            },
-            returnObject: {
-                type: Boolean,
-                default: false
-            }
-        },
-        created() {
-            if (this.returnObject) {
-                warn('form-select: return-object has been deprecated and will be removed in future releases');
+            localValue(newVal, oldVal) {
+                if (newVal !== oldVal) {
+                    this.$emit('input', newVal);
+                }
             }
         }
     };
-
 </script>
