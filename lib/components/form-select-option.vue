@@ -1,3 +1,6 @@
+<template>
+</template>
+<script>
 import { mergeData } from "../utils";
 
 export const props = {
@@ -27,3 +30,4 @@ export default {
         );
     }
 };
+</script>
