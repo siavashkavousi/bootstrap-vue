@@ -8,70 +8,75 @@
             :disabled="disabled"
             :required="required"
             :aria-required="required ? 'true' : null"
-            :aria-invalid="ariaInvalid"
+            :aria-invalid="computedAriaInvalid"
             ref="input"
-            @change="$emit('change', localValue)"
-    ><slot></slot></select>
+    >
+        <b-form-option v-for="option in formOptions"
+                :value="option.value"
+                :disabled="option.disabled"
+                :key="option.value || option.text"
+        >{{ option.text }}</b-form-option>
+        <slot></slot>
+    </select>
 </template>
 
 <script>
-    import { formMixin, formCustomMixin } from '../mixins';
+    import { formMixin, formOptionsMixin, formCustomMixin } from '../mixins';
     import { warn } from '../utils';
 
     export default {
-        mixins: [formMixin, formCustomMixin],
+        mixins: [formMixin, formCustomMixin, formOptionsMixin],
         data() {
             return {
-                localValue: this.multiple ? (this.value || []) : this.value
+                localValue: this.value
             };
         },
         props: {
             value: {},
-            invalid: {
-                type: [Boolean, String],
-                default: false
+            state: {
+                // 'valid', 'invalid' or null
+                type: String,
+                default: null
             },
             size: {
                 type: String,
                 default: null
+            },
+            options: {
+                type: [Array, Object],
+                required: true
             },
             multiple: {
                 type: Boolean,
                 default: false
             },
             selectSize: {
-                // Browsers default size to 0, which typically shows 4 rows in most browsers
-                // Size of 1 can bork out firefox!!!
+                // Browsers default size to 0, which shows 4 rows in most browsers in multiple mode
+                // Size of 1 can bork out firefox
                 type: Number,
                 default: 0
+            },
+            ariaInvalid: {
+                type: [Boolean, String],
+                default: false
             }
         },
         computed: {
             inputClass() {
                 return [
                     'form-control',
+                    this.state ? `is-${this.state}` : null,
                     this.size ? `form-control-${this.size}` : null,
                     (this.plain || this.multiple || this.selectSize > 1) ? null : 'custom-select'
                 ];
             },
-            ariaInvalid() {
-                if (this.invalid === true || this.invalid === 'true') {
+            computedAriaInvalid() {
+                if (this.ariaInvalid === true || this.ariaInvalid === 'true') {
                     return 'true';
                 }
-                return null;
-            }
-        },
-        watch: {
-            value(newVal, oldVal) {
-                if (newVal !== oldVal) {
-                    this.lcoalValue = this.multiple ? (newVal || []) : newVal;
-                }
-            },
-            localValue(newVal, oldVal) {
-                if (newVal !== oldVal) {
-                    this.$emit('input', newVal);
-                }
+                return this.state == 'invalid' ? 'true' : null;
             }
         }
     };
+
 </script>
