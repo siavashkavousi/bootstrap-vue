@@ -10,6 +10,7 @@
             :aria-required="required ? 'true' : null"
             :aria-invalid="computedAriaInvalid"
             ref="input"
+            @input="emitValue"
     >
         <slot name="first"><slot>
         <b-form-option v-for="(option, idx) in formOptions"
@@ -22,18 +23,11 @@
 </template>
 
 <script>
-    import { formMixin, formStateMixin, formOptionsMixin, formCustomMixin } from '../mixins';
+    import { formMixin, formSizeMixin, formStateMixin, formOptionsMixin, formCustomMixin } from '../mixins';
     import { warn } from '../utils';
 
     export default {
-        mixins: [formMixin, formStateMixin, formCustomMixin, formOptionsMixin],
-        watch: {
-            value(newVal, oldVal)  {
-                if (newVal !== oldVal) {
-                    this.$emit('input', this.value);
-                }
-            }
-        },
+        mixins: [formMixin, formSizeMixin, formStateMixin, formCustomMixin, formOptionsMixin],
         props: {
             value: {},
             multiple: {
@@ -49,10 +43,6 @@
             ariaInvalid: {
                 type: [Boolean, String],
                 default: false
-            },
-            size: {
-                type: String,
-                default: null
             }
         },
         computed: {
@@ -60,7 +50,7 @@
                 return [
                     'form-control',
                     this.stateClass,
-                    this.size ? `form-control-${this.size}` : null,
+                    this.sizeClass,
                     (this.plain || this.multiple || this.selectSize > 1) ? null : 'custom-select'
                 ];
             },
@@ -70,7 +60,11 @@
                 }
                 return this.stateClass == 'is-invalid' ? 'true' : null;
             }
+        },
+        methods: {
+            emitValue(value) {
+                this.$emit('input', value);
+            }
         }
     };
-
 </script>
