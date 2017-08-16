@@ -2,7 +2,7 @@
     <select :class="inputClass"
             :name="name"
             :id="id || null"
-            v-model="localValue"
+            v-model="value"
             :multiple="multiple || null"
             :size="(multiple || selectSize > 1) ? selectSize : null"
             :disabled="disabled"
@@ -11,41 +11,31 @@
             :aria-invalid="computedAriaInvalid"
             ref="input"
     >
-        <b-form-option v-for="option in formOptions"
+        <slot name="first"><slot>
+        <b-form-option v-for="(option, idx) in formOptions"
                 :value="option.value"
                 :disabled="option.disabled"
-                :key="option.value || option.text"
+                :key="`option_${idx}`"
         >{{ option.text }}</b-form-option>
         <slot></slot>
     </select>
 </template>
 
 <script>
-    import { formMixin, formOptionsMixin, formCustomMixin } from '../mixins';
+    import { formMixin, formStateMixin, formOptionsMixin, formCustomMixin } from '../mixins';
     import { warn } from '../utils';
 
     export default {
-        mixins: [formMixin, formCustomMixin, formOptionsMixin],
-        data() {
-            return {
-                localValue: this.value
-            };
+        mixins: [formMixin, formStateMixin, formCustomMixin, formOptionsMixin],
+        watch: {
+            value(newVal, oldVal)  {
+                if (newVal !== oldVal) {
+                    this.$emit('input', this.value);
+                }
+            }
         },
         props: {
             value: {},
-            state: {
-                // 'valid', 'invalid' or null
-                type: String,
-                default: null
-            },
-            size: {
-                type: String,
-                default: null
-            },
-            options: {
-                type: [Array, Object],
-                required: true
-            },
             multiple: {
                 type: Boolean,
                 default: false
@@ -59,13 +49,17 @@
             ariaInvalid: {
                 type: [Boolean, String],
                 default: false
+            },
+            size: {
+                type: String,
+                default: null
             }
         },
         computed: {
             inputClass() {
                 return [
                     'form-control',
-                    this.state ? `is-${this.state}` : null,
+                    this.stateClass,
                     this.size ? `form-control-${this.size}` : null,
                     (this.plain || this.multiple || this.selectSize > 1) ? null : 'custom-select'
                 ];
@@ -74,7 +68,7 @@
                 if (this.ariaInvalid === true || this.ariaInvalid === 'true') {
                     return 'true';
                 }
-                return this.state == 'invalid' ? 'true' : null;
+                return this.stateClass == 'is-invalid' ? 'true' : null;
             }
         }
     };
