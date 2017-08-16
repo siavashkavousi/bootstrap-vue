@@ -9,30 +9,20 @@
     >
         <slot name="first"></slot>
         <!-- TODO: Change this to use form-radio component -->
-        <label v-for="(option, idx) in formOptions"
-               :class="buttons ? btnLabelClasses(option, idx) : labelClasses"
-               :key="`radio_${idx}`"
-               // Since we stor full value, we can check the isChecked stte of input
-               // Or do we really need this since screen readers wil see a checkbox, not a button
-               :aria-pressed="buttons ? (option.value === localValue ? 'true' : 'false') : null"
-        >
-            <input :id="id ? (id + '__BV_radio_' + idx) : null"
-                   :class="radioClasses"
-                   ref="inputs"
-                   type="radio"
-                   autocomplete="off"
-                   v-model="localValue"
-                   :value="option.value"
-                   :name="name"
-                   :required="name && required"
-                   :disabled="option.disabled || disabled"
-                   @focus="handleFocus"
-                   @blur="handleFocus"
-                   @change="$emit('change', returnObject ? option : option.value)"
-            >
-            <span v-if="custom && !buttons" class="custom-control-indicator" aria-hidden="true"></span>
-            <span :class="(custom && !buttons) ? 'custom-control-description' : null" v-html="option.text"></span>
-        </label>
+        <b-radio v-for="(option, idx) in formOptions"
+                 v-model="value"
+                 ref="options"
+                 :id="id ? `${id}__BV_radio_${idx}_opt_` : null"
+                 :name="name"
+                 :value="option.value"
+                 :required="name && required"
+                 :disabled="option.disabled || disabled"
+                 :plain="plain"
+                 :button="buttons"
+                 :key="`radio_${idx}`"
+                 @input="emitValue"
+                 @change"emitValue" // which event is used for checks?
+        ><span v-html="option.text"></span></b-radio>
         <slot></slot>
     </div>
 </template>
