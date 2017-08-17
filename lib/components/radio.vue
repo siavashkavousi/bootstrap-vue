@@ -1,0 +1,169 @@
+<template>
+    <label :class="labelClasses">
+        <input v-model="localChecked"
+               :id="id || null"
+               :class="inputClasses"
+               :value="value"
+               :name="getName"
+               :required="get_Name && get_Required"
+               :disabled="is_Disabled"
+               ref="radio"
+               type="radio"
+               autocomplete="off"
+               @focus="handleFocus"
+               @blur="handleFocus"
+        >
+        <span v-if="custom && !button" class="custom-control-indicator" aria-hidden="true"></span>
+        <span :class="(custom && !button) ? 'custom-control-description' : null" v-html="text"></span>
+    </label>
+</template>
+
+<script>
+    import { formOptionsMixin, formMixin, formCustomMixin, formCheckBoxMixin } from '../mixins';
+    export default {
+        mixins: [formMixin, formCustomMixin, formCheckBoxMixin, formOptionsMixin],
+        data() {
+            return {
+                // This would be refernce of the parent
+                localChecked: this.checked;
+            };
+        },
+        model: {
+            prop: 'checked',
+            event: 'input'
+        },
+        props: {
+            selected: {},
+            ariaInvalid: {
+                type: [Boolean, String],
+                default: false
+            },
+            stacked: {
+                type: Boolean,
+                default: false
+            },
+            button: {
+                // Render as button style
+                type: Boolean,
+                default: false
+            },
+            buttonVariant: {
+                // Only applicable when rendered with button style
+                type: String,
+                default: 'secondary'
+            }
+        },
+        watch: {
+            // Radio Groups can only have one final vaule, so our wathers are simple
+            checked(newVal, oldVal) {
+                this.localChceked = newVal;
+            },
+            localChceked(newVal, oldVal) {
+                this.$emit('input',this.localChceked)
+            }
+        },
+        computed: {
+            // form-mixin
+            is_FormChild() {
+                // Form Groups, Form, radio groups and check groups can use this
+                return Boolen(this.$parent && this.$parent.is_FormContainer);
+                // b-form-row, b-form-group, b-form are all FormContainers
+            },
+            is_Plain() {
+                return Booloean(this.is_FormChild ? this.$parent.is_Plain : this.plain);
+            },
+            is_Custom() {
+                return !this.is_Plain;
+            },
+            is_Disabled() {
+                // Child can be disabled while parent isn't
+                return Boolean((this.is_FormChild && this.$parent.is_Disabled) || this.disabled);
+            },
+            get_FormVm() {
+                if (this.$el.tagName === 'FORM') {
+                    return this;
+                }
+                return this.is_FormChild ? this.$parent.get_FormVm : null;
+            },
+            // Form-size-mixin
+            get_Size() {
+                // This could be added to form-size mixin
+                // Child can override parent variant
+                return this.is_FormChild ? (this.size || this.$parent.get_Size) : this.size;
+            },
+            // form-state mixin
+            get_State() {
+                // This could be added to form-state mixin
+                // This is a tri-state prop (true, false, null)
+                // TODO: This needs to be revamped to handle tri-state properly
+                // because null and false both evalulate loosely to false
+                return this.isFormChild ? (this.state || this.$parent.getState) : this.state;
+            },
+            // radio / Checkbox only params form-checkbox mixin
+            is_Stacked() {
+                return Boolean(this.is_FormChild ? this.$parent.is_Stacked : this.stacked);
+            },
+            is_Inline() {
+                return !this.is_Stacked;
+            },
+            is_ButtonMode() {
+                // this.buttonVariant only applies to radios & checkboxes
+                return Boolean((this.is_FormChild && this.$parent.is_ButtonMode) || this.buttons || this.button);
+            },
+            get_ButtonVariant() {
+                if (this.is_FormChild) {
+                    // IF we are a child of a form component, we must explicity set button mode to
+                    // get local buttonVariant to apply, so otherwise we use parent's variant by deafult
+                    return (this.button || this.buttons) ? this.butonVariant : this.$parent.get_ButtonVariant;
+                }
+                // Not a formChild, so we just go aheadand user local variant name
+                return this.buttonVariant || null;
+            },
+            get_Name() {
+                return (this.isFOrmChild ? this.$parent.get_Name : this.name) || null
+            },
+            // Local computed
+            isChecked() {
+                return this.value === this.localChecked;
+            },
+            inputClasses() {
+                return [
+                    (this.is_Custom && !this.is_ButtonMode) ? 'custom-control-input' : null
+                ];
+            },
+            labelClasses() {
+                if (this.is_ButtonMode) {
+                    return [
+                        'btn',
+                        `btn-${this.getButtonVariant}`,
+                        // Fix stacking issue (remove space between buttons)
+                        this.is_Stacked ? 'mb-0' : ''
+                        // 'disabled' class makes "button" look disabled
+                        this.is_Disabled ? 'disabled' : '',
+                        // 'active' class makes "button" look pressed
+                        this.isChecked ? 'active' : null,
+                    ];
+                }
+                return [
+                    //checkbox mixin
+                    this.is_Custom ? 'custom-control' : '',
+                    this.is_Custom ? 'custom-radio' : null,
+                    this.is_Inline ? 'form-check-inline' : ''
+                ];
+            }
+        },
+        methods: {
+            handleFocus(evt) {
+                // When in buttons mode, we need to add 'focus' class to label when radio focused
+                if (this.is_ButtonMode && evt.target && evt.target.parentElement) {
+                    const label = evt.target.parentElement;
+                    if (evt.type ==='focus') {
+                        label.classList.add('focus');
+                    } else if (evt.type ==='blur') {
+                        label.classList.remove('focus');
+                    }
+                }
+            }
+        }
+    };
+</script>
