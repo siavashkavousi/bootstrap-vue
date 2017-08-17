@@ -1,6 +1,6 @@
 <template>
-    <div :id="id || null"
-         :class="buttons ? btnGroupClasses : radioGroupClasses"
+    <div :id="localId || null"
+         :class="groupClasses"
          role="radiogroup"
          tabindex="-1"
          :data-toggle="buttons ? 'buttons' : null"
@@ -8,38 +8,48 @@
          :aria-invalid="computedAriaInvalid"
     >
         <slot name="first"></slot>
-        <!-- TODO: Change this to use form-radio component -->
-        <b-radio v-for="(option, idx) in formOptions"
-                 v-model="value"
+        <b-form-radio v-for="(option, idx) in formOptions"
+                 v-model="localChecked"
                  ref="options"
-                 :id="id ? `${id}__BV_radio_${idx}_opt_` : null"
+                 :id="localId ? `${localId}_BV_radio_${idx}_opt_` : null"
                  :name="name"
                  :value="option.value"
                  :required="name && required"
-                 :disabled="option.disabled || disabled"
-                 :plain="plain"
-                 :button="buttons"
+                 :disabled="option.disabled"
                  :key="`radio_${idx}`"
-                 @input="emitValue"
-                 @change"emitValue" // which event is used for checks?
-        ><span v-html="option.text"></span></b-radio>
+        ><span v-html="option.text"></span></b-form-radio>
         <slot></slot>
     </div>
 </template>
 
 <script>
-    import { formMixin, formOptionsMixin, formSizeMixin, formStateMixin, formCustomMixin, formCheckBoxMixin } from '../mixins';
+    import { formMixin, formOptionsMixin, formSizeMixin, formStateMixin, formCustomMixin } from '../mixins';
+    import bFormRadio from './form-radio.vue';
 
     export default {
-        mixins: [formMixin, formSizeMixin, formStateMixin, formCustomMixin, formCheckBoxMixin, formOptionsMixin],
+        mixins: [formMixin, formSizeMixin, formStateMixin, formCustomMixin, formOptionsMixin],
+        components: [bFormRadio],
         data() {
             return {
-                localValue: this.value,
-                localState: this.state
+                localChecked: this.checked;
+                localId: this.id || null;
             };
         },
+        mounted() {
+            // Generate a client side ID
+            if (!this.localId) {
+                this.localId = `__BV__${this._uid}_`;
+            }
+        },
+        model: {
+            prop: 'checked',
+            event: 'input'
+        },
         props: {
-            value: {},
+            checked: {
+                type: [String, Object],
+                default: null
+            },
             validated: {
                 type: Boolean,
                 default: false
@@ -63,75 +73,35 @@
                 default: 'secondary'
             }
         },
+        watch: {
+            checked(newVal, oldVal) {
+                this.localChecked = this.checked;
+            },
+            localChecked(newVal, oldVal) {
+                this.$emit('input', newVal);
+            }
+        },
         computed: {
-            radioGroupClasses() {
+            groupClasses() {
+                if (this.is_ButtonMode) {
+                    return [
+                        'btn-group',
+                        this.sizeClass,
+                        this.stacked ? 'btn-group-vertical' : ''
+                        this.validated ? `was-validated` : ''
+                    ];
+                }
                 return [
-                    this.validated ? `was-validated` : '',
                     this.sizeClass,
                     this.stacked ? 'custom-controls-stacked' : ''
+                    this.validated ? `was-validated` : ''
                ];
-            },
-            btnGroupClasses() {
-                return [
-                    'btn-group',
-                    this.validated ? `was-validated` : '',
-                    this.sizeClass,
-                    this.stacked ? 'btn-group-vertical' : ''
-                 ];
-            },
-            radioClasses() {
-                return [
-                    (this.custom && !this.buttons) ? 'custom-control-input' : null,
-                    this.stateClass
-                ];
-            },
-            labelClasses() {
-                return [
-                    this.checkboxClass,
-                    this.custom ? 'custom-radio' : null
-                ];
             },
             computedAriaInvalid() {
                 if (this.ariaInvalid === true || this.AriaInvalid === 'true') {
                     return 'true'
                 }
                 return this.stateClass === 'is-invalid' ? 'true' : null;
-            },
-            inline() {
-                return !this.stacked;
-            }
-        },
-        // TODO:: These will move to radio prop
-        methods: {
-            // TODO:  Move to form-radio
-            btnLabelClasses(option, idx) {
-                return [
-                    'btn',
-                    // Fix staking issue (remove space between buttons)
-                    // TODO: Check bootstrap native to see if this is fixed
-                    this.stacked ? '' : 'mb-0',
-                    // TODO: This should check this.buttonVariant || this.$parent.buttonVariant
-                    // Will probably need to nullify the default variant on individual radio
-                    // And button mode shopuld oly be settable on parent. maybe child has no variant? 
-                    `btn-${this.buttonVariant}`,
-                    // TODO: check this.$parent.disabled
-                    (option.disabled || this.disabled) ? 'disabled' : '',
-                    // TODO:  Need better way to check this... maybe a watcher in the form-radio component
-                    // Might be able to look at $el._value for object
-                    option.value === this.localValue ? 'active' : null,
-                ];
-            },
-            // TODO: Move to form-radio
-            handleFocus(evt) {
-                // When in buttons mode, we need to add 'focus' class to label when radio focused
-                if (this.buttons && evt.target && evt.target.parentElement) {
-                    const label = evt.target.parentElement;
-                    if (evt.type ==='focus') {
-                        label.classList.add('focus');
-                    } else if (evt.type ==='blur') {
-                        label.classList.remove('focus');
-                    }
-                }
             }
         }
     };
