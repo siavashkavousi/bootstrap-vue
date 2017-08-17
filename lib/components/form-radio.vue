@@ -1,10 +1,11 @@
+<!-- Creates Single radio input -->
 <template>
     <label :class="labelClasses">
         <input v-model="localChecked"
                :id="id || null"
                :class="inputClasses"
                :value="value"
-               :name="getName"
+               :name="get_Name"
                :required="get_Name && get_Required"
                :disabled="is_Disabled"
                ref="radio"
@@ -13,40 +14,44 @@
                @focus="handleFocus"
                @blur="handleFocus"
         >
-        <span v-if="custom && !button" class="custom-control-indicator" aria-hidden="true"></span>
-        <span :class="(custom && !button) ? 'custom-control-description' : null" v-html="text"></span>
+        <span v-if="is_Custom && !is_ButtonMode" class="custom-control-indicator" aria-hidden="true"></span>
+        <span :class="(is_Custom && !is_ButtonMode) ? 'custom-control-description' : null">
+            <slot></slot>
+        </span>
     </label>
 </template>
 
 <script>
-    import { formOptionsMixin, formMixin, formCustomMixin, formCheckBoxMixin } from '../mixins';
+    // TODO: create form-control mixin for ID, name, etc and common props (state, etc)
+    import { formMixin, formCustomMixin } from '../mixins';
     export default {
-        mixins: [formMixin, formCustomMixin, formCheckBoxMixin, formOptionsMixin],
+        mixins: [formMixin, formCustomMixin],
         data() {
             return {
-                // This would be refernce of the parent
+                // This could be in form-check-radio mixin
                 localChecked: this.checked;
             };
         },
         model: {
+            // could be in form-check-radio mixin
             prop: 'checked',
             event: 'input'
         },
         props: {
-            selected: {},
-            ariaInvalid: {
-                type: [Boolean, String],
-                default: false
-            },
+            // could be in form-check-radio mixin
+            checked: {},
+            // could be in form-check-radio mixin
             stacked: {
                 type: Boolean,
                 default: false
             },
+            // could be in form-check-radio mixin
             button: {
                 // Render as button style
                 type: Boolean,
                 default: false
             },
+            // could be in form-check-radio mixin
             buttonVariant: {
                 // Only applicable when rendered with button style
                 type: String,
@@ -65,15 +70,8 @@
         computed: {
             // form-mixin
             is_FormChild() {
-                // Form Groups, Form, radio groups and check groups can use this
                 return Boolen(this.$parent && this.$parent.is_FormContainer);
                 // b-form-row, b-form-group, b-form are all FormContainers
-            },
-            is_Plain() {
-                return Booloean(this.is_FormChild ? this.$parent.is_Plain : this.plain);
-            },
-            is_Custom() {
-                return !this.is_Plain;
             },
             is_Disabled() {
                 // Child can be disabled while parent isn't
@@ -84,6 +82,13 @@
                     return this;
                 }
                 return this.is_FormChild ? this.$parent.get_FormVm : null;
+            },
+            // Form-custom mixin
+            is_Plain() {
+                return Booloean(this.is_FormChild ? this.$parent.is_Plain : this.plain);
+            },
+            is_Custom() {
+                return !this.is_Plain;
             },
             // Form-size-mixin
             get_Size() {
@@ -99,7 +104,7 @@
                 // because null and false both evalulate loosely to false
                 return this.isFormChild ? (this.state || this.$parent.getState) : this.state;
             },
-            // radio / Checkbox only params form-checkbox mixin
+            // radio / Checkbox only params form-check-radio mixin
             is_Stacked() {
                 return Boolean(this.is_FormChild ? this.$parent.is_Stacked : this.stacked);
             },
@@ -120,7 +125,8 @@
                 return this.buttonVariant || null;
             },
             get_Name() {
-                return (this.isFOrmChild ? this.$parent.get_Name : this.name) || null
+                // may want to limit this to radio/check wrappers
+                return (this.isFormChild ? this.$parent.get_Name : this.name) || null
             },
             // Local computed
             isChecked() {
@@ -156,11 +162,11 @@
             handleFocus(evt) {
                 // When in buttons mode, we need to add 'focus' class to label when radio focused
                 if (this.is_ButtonMode && evt.target && evt.target.parentElement) {
-                    const label = evt.target.parentElement;
+                    const labelClassList = evt.target.parentElement.classList;
                     if (evt.type ==='focus') {
-                        label.classList.add('focus');
+                        labelclassList.add('focus');
                     } else if (evt.type ==='blur') {
-                        label.classList.remove('focus');
+                        labelclassList.remove('focus');
                     }
                 }
             }
