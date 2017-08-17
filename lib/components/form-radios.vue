@@ -23,23 +23,16 @@
 </template>
 
 <script>
-    import { formMixin, formOptionsMixin, formSizeMixin, formStateMixin, formCustomMixin } from '../mixins';
+    import { formMixin, idMixin, formOptionsMixin, formSizeMixin, formStateMixin, formCustomMixin } from '../mixins';
     import bFormRadio from './form-radio.vue';
 
     export default {
-        mixins: [formMixin, formSizeMixin, formStateMixin, formCustomMixin, formOptionsMixin],
+        mixins: [formMixin, idMixin, formSizeMixin, formStateMixin, formCustomMixin, formOptionsMixin],
         components: [bFormRadio],
         data() {
             return {
-                localChecked: this.checked;
-                localId: this.id || null;
-            };
-        },
-        mounted() {
-            // Generate a client side ID
-            if (!this.localId) {
-                this.localId = `__BV__${this._uid}_`;
-            }
+                localChecked: this.checked
+              };
         },
         model: {
             prop: 'checked',
