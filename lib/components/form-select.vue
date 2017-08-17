@@ -2,7 +2,7 @@
     <select :class="inputClass"
             :name="name"
             :id="safeId"
-            v-model="value"
+            v-model="localValue"
             :multiple="multiple || null"
             :size="(multiple || selectSize > 1) ? selectSize : null"
             :disabled="disabled"
@@ -28,6 +28,16 @@
 
     export default {
         mixins: [formMixin, idMixin, formSizeMixin, formStateMixin, formCustomMixin, formOptionsMixin],
+        data() {
+            return {
+                localValue: this.value
+            }
+        },
+        watch: {
+            value(newVal, oldVal) {
+                this.localValue = newVal;
+            }
+        },
         props: {
             value: {},
             multiple: {
