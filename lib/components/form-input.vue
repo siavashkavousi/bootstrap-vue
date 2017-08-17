@@ -1,5 +1,5 @@
 <template>
-    <input :id="id || null"
+    <input :id="safeId"
            :class="inputClass"
            :name="name"
            :value="value"
@@ -16,9 +16,9 @@
 </template>
 
 <script>
-    import { formMixin, forSizeMixin, forStateMixin } from '../mixins';
+    import { idMixin, formMixin, forSizeMixin, forStateMixin } from '../mixins';
     export default {
-        mixins: [formMixin formSizeMixin, formStateMixin],
+        mixins: [formMixin, idMixin, formSizeMixin, formStateMixin],
         props: {
             value: {
                 default: null
