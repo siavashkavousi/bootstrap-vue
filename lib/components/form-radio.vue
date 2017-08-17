@@ -29,7 +29,7 @@
         data() {
             return {
                 // This could be in form-check-radio mixin
-                localChecked: this.checked;
+                localChecked: this.checked
             };
         },
         model: {
@@ -59,19 +59,23 @@
             }
         },
         watch: {
-            // Radio Groups can only have one final vaule, so our wathers are simple
+            // Radio Groups can only have one final value, so our wathers are simple
             checked(newVal, oldVal) {
                 this.localChceked = newVal;
             },
             localChceked(newVal, oldVal) {
-                this.$emit('input',this.localChceked)
+                this.$emit('input',this.localChceked);
             }
         },
         computed: {
+            // TODO: Make recursive/looping prop to find formContainer/formCheckRadioContaier
+
             // form-mixin
             is_FormChild() {
                 return Boolen(this.$parent && this.$parent.is_FormContainer);
                 // b-form-row, b-form-group, b-form are all FormContainers
+                // They will need to have is_FormContainer set to true
+                // We also may want to make this recursive ? to handle intermediate components?
             },
             is_Disabled() {
                 // Child can be disabled while parent isn't
@@ -102,11 +106,18 @@
                 // This is a tri-state prop (true, false, null)
                 // TODO: This needs to be revamped to handle tri-state properly
                 // because null and false both evalulate loosely to false
+                if (this.is_FormChild
                 return this.isFormChild ? (this.state || this.$parent.getState) : this.state;
             },
             // radio / Checkbox only params form-check-radio mixin
+            is_FormCheckRadioChild() {
+                return Boolen(this.$parent && this.$parent.is_FormCheckRadioContainer);
+                // b-form-radios and b-form-checkboxes ara all FormCheckRadioContainers
+                // They will need to have is_FormCheckRadioContainer set to true
+                // TODO: We also may want to make this recursive/while loop ? to handle intermediate components?
+            },
             is_Stacked() {
-                return Boolean(this.is_FormChild ? this.$parent.is_Stacked : this.stacked);
+                return Boolean(this.is_FormCheckRadioChild ? this.$parent.is_Stacked : this.stacked);
             },
             is_Inline() {
                 return !this.is_Stacked;
@@ -116,25 +127,25 @@
                 return Boolean((this.is_FormChild && this.$parent.is_ButtonMode) || this.buttons || this.button);
             },
             get_ButtonVariant() {
-                if (this.is_FormChild) {
+                if (this.is_FormCheckRadioChild) {
                     // IF we are a child of a form component, we must explicity set button mode to
                     // get local buttonVariant to apply, so otherwise we use parent's variant by deafult
                     return (this.button || this.buttons) ? this.butonVariant : this.$parent.get_ButtonVariant;
                 }
-                // Not a formChild, so we just go aheadand user local variant name
+                // Not a formCheckRadioChild, so we just go aheadand user local variant name
                 return this.buttonVariant || null;
             },
             get_Name() {
-                // may want to limit this to radio/check wrappers
-                return (this.isFormChild ? this.$parent.get_Name : this.name) || null
+                // limit this to radio/check wrappers
+                return (this.isFormChild ? this.$parent.get_Name : this.name) || null;
             },
-            // Local computed
+            // Local computed props
             isChecked() {
                 return this.value === this.localChecked;
             },
             inputClasses() {
                 return [
-                    (this.is_Custom && !this.is_ButtonMode) ? 'custom-control-input' : null
+                    (this.is_Custom && !this.is_ButtonMode) ? 'custom-control-input' : null;
                 ];
             },
             labelClasses() {
@@ -142,16 +153,15 @@
                     return [
                         'btn',
                         `btn-${this.getButtonVariant}`,
-                        // Fix stacking issue (remove space between buttons)
+                        // Fix stacking issue (remove space between buttons, specifically the last one)
                         this.is_Stacked ? 'mb-0' : ''
                         // 'disabled' class makes "button" look disabled
                         this.is_Disabled ? 'disabled' : '',
                         // 'active' class makes "button" look pressed
-                        this.isChecked ? 'active' : null,
+                        this.isChecked ? 'active' : null
                     ];
                 }
                 return [
-                    //checkbox mixin
                     this.is_Custom ? 'custom-control' : '',
                     this.is_Custom ? 'custom-radio' : null,
                     this.is_Inline ? 'form-check-inline' : ''
