@@ -1,7 +1,7 @@
 <template>
     <select :class="inputClass"
             :name="name"
-            :id="id || null"
+            :id="safeId"
             v-model="value"
             :multiple="multiple || null"
             :size="(multiple || selectSize > 1) ? selectSize : null"
@@ -23,11 +23,11 @@
 </template>
 
 <script>
-    import { formMixin, formSizeMixin, formStateMixin, formOptionsMixin, formCustomMixin } from '../mixins';
+    import { formMixin, idMixin, formSizeMixin, formStateMixin, formOptionsMixin, formCustomMixin } from '../mixins';
     import { warn } from '../utils';
 
     export default {
-        mixins: [formMixin, formSizeMixin, formStateMixin, formCustomMixin, formOptionsMixin],
+        mixins: [formMixin, idMixin, formSizeMixin, formStateMixin, formCustomMixin, formOptionsMixin],
         props: {
             value: {},
             multiple: {
