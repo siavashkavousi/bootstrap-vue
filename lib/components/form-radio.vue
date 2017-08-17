@@ -2,7 +2,7 @@
 <template>
     <label :class="labelClasses">
         <input v-model="localChecked"
-               :id="id || null"
+               :id="safeId"
                :class="inputClasses"
                :value="value"
                :name="get_Name"
@@ -23,7 +23,7 @@
 
 <script>
     // TODO: create form-control mixin for ID, name, etc and common props (state, etc)
-    import { formMixin, formCustomMixin } from '../mixins';
+    import { formMixin, idMixin, formCustomMixin } from '../mixins';
     export default {
         mixins: [formMixin, formCustomMixin],
         data() {
