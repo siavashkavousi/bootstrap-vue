@@ -106,8 +106,11 @@
                 // This is a tri-state prop (true, false, null)
                 // TODO: This needs to be revamped to handle tri-state properly
                 // because null and false both evalulate loosely to false
-                if (this.is_FormChild
-                return this.isFormChild ? (this.state || this.$parent.getState) : this.state;
+                if (this.is_FormChild) {
+                    return typeof this.state === 'boolean' ? this.state : this.$parent.getState || null;
+                } else {
+                    return this.state;
+                }
             },
             // radio / Checkbox only params form-check-radio mixin
             is_FormCheckRadioChild() {
